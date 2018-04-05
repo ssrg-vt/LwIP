@@ -1,7 +1,7 @@
 /* This file specifies the lwip features */
 
 #ifndef __LWIPOPTS_H__
-#define __LWIPOPTS_H_
+#define __LWIPOPTS_H__
 
 #include <stddef.h>
 
