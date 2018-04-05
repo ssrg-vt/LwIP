@@ -242,34 +242,6 @@ void sys_mbox_post(sys_mbox_t* mbox, void* msg)
 	mailbox_ptr_post(&mbox->mailbox, msg);
 }
 
-/* sys_mutex_lock(): lock the given mutex
- * Note: There is no specific mutex in
- * HermitCore so we use a semaphore with
- * 1 element
- */
-void sys_mutex_lock(sys_mutex_t* mutex)
-{
-	sys_sem_wait(mutex->sem);
-}
-
-/* sys_mutex_unlock(): unlock the given mutex
- *
- */
-void sys_mutex_unlock(sys_mutex_t* mutex)
-{
-	sys_sem_post(mutex->sem);
-}
-
-/* sys_mutex_new(): create a new mutex
- *
- */
-err_t sys_mutex_new(sys_mutex_t* mutex)
-{
-	SYS_STATS_INC_USED(mutex);
-	sys_sem_init(&mutex->sem, 1);
-	return ERR_OK;
-}
-
 sys_prot_t sys_arch_protect(void)
 {
 	sys_spinlock_irqsave_lock(lwprot_lock);
@@ -533,10 +505,11 @@ int lwip_rand(void)
 }
 
 #if LWIP_NETCONN_SEM_PER_THREAD
-static __thread sem_t* netconn_sem = NULL;
+static __thread sem_t netconn_sem;
 
 sys_sem_t* sys_arch_netconn_sem_get(void)
 {
+	kprintf("netcon %p\n", netconn_sem);
 	return netconn_sem;
 }
 
@@ -545,12 +518,12 @@ void sys_arch_netconn_sem_alloc(void)
 	if (netconn_sem != NULL)
 		return;
 
-	sys_sem_init(&netconn_sem, 0);
+	sys_sem_new(&netconn_sem, 0);
 }
 
 void sys_arch_netconn_sem_free(void)
 {
-	sys_sem_destroy(netconn_sem);
+	sys_sem_destroy(&netconn_sem);
 }
 #endif /* LWIP_NETCONN_SEM_PER_THREAD */
 
