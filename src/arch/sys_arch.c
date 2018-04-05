@@ -507,6 +507,9 @@ int select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset, st
 		return -1;
 	}
 
+	// check if another task is already ready
+	sys_yield();
+
 	return ret;
 }
 
@@ -611,7 +614,7 @@ int lwip_rand(void)
 	spinlock_lock(&rand_lock);
 	if (!rand_init) {
 		rand_init = 1;
-		rand_seed = rdtsc() % 127;
+		rand_seed = get_rdtsc() % 127;
 	}
 	r = __rand(&rand_seed);
 	spinlock_unlock(&rand_lock);
